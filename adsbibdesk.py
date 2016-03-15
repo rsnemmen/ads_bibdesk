@@ -255,9 +255,12 @@ def process_token(article_token, prefs, bibdesk=None):
     # ready to be imported into jabref or other software
     xbibtex=ads_parser.bibtex.__str__()
 
-
     # string variable with abstract
     xabs=ads_parser.abstract
+
+    ads_parser.bibtex.info.update({'abstract': '"' + xabs + '"'})
+
+    print(ads_parser.bibtex)
 
 
 
