@@ -8,18 +8,11 @@ This tool is based on [ADS to Bibdesk](https://github.com/jonathansick/ads_bibde
 
 # Command Line Quickstart
 
-ADS Paste can also be run directly from the command line.
-The command line script can be installed via::
-
-    python setup.py install
-
-You may need to run the last command with `sudo`.
-
-Once `adspaste` is installed, you can call it with the same types of article tokens you can launch the Service with, e.g.,::
+`adspaste` can be called with the same types of article tokens you can launch the Service with, e.g.,
 
     adspaste 1998ApJ...500..525S
 
-A full summary of `adspaste` commands is available via::
+A full summary of `adspaste` commands is available via
 
     adspaste --help
 
@@ -31,12 +24,26 @@ A full summary of `adspaste` commands is available via::
 * An article DOI.
 
 
+# Installation
 
+The command line script can be installed via
+
+    python setup.py install
+
+and the binary adsbibdesk will be installed into your path. You may need to run the last command with `sudo`.
+
+If you want to be able to right click on a reference and run the script on the selection from OS X, run
+
+    python setup.py service
+
+to build the service.
 
 # TODO
 
+* Update setup.py
+* Update the automator service for OS X, such that you can right click to add references with Mac
 * Graphical interface with simple text input for pasting the article token and pressing enter/clicking, copying the bibtex entry to the clipboard
-* Remove other options previously available in adsbibdesk which are not needed anymore
+* Remove other options and unnecessary code previously available in adsbibdesk which are not needed anymore
 
 
 # License
