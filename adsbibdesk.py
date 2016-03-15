@@ -48,31 +48,6 @@ import urllib2
 import urlparse
 
 import subprocess as sp
-try:
-    import AppKit
-except ImportError:
-    # is this not the system python?
-    syspath = eval(sp.Popen('/usr/bin/python -c "import sys; print(sys.path)"',
-                            shell=True, stdout=sp.PIPE).stdout.read())
-    for p in syspath:
-        if os.path.isdir(p) and glob.glob(os.path.join(p, '*AppKit*')):
-            sys.path.insert(0, p)
-            break
-
-    # retry
-    try:
-        import AppKit
-    except ImportError:
-        import webbrowser
-        url = 'http://pythonhosted.org/pyobjc/install.html'
-        msg = 'Please install PyObjC...'
-        print msg
-        sp.call(r'osascript -e "tell application \"System Events\" to '
-                'display dialog \"%s\" buttons {\"OK\"} default button \"OK\""'
-                % msg, shell=True, stdout=open('/dev/null', 'w'))
-        # open browser in PyObjC install page
-        webbrowser.open(url)
-        sys.exit()
 
 from HTMLParser import HTMLParser, HTMLParseError
 from htmlentitydefs import name2codepoint
