@@ -255,58 +255,12 @@ def process_token(article_token, prefs, bibdesk=None):
     # ready to be imported into jabref or other software
     xbibtex=ads_parser.bibtex.__str__()
 
-    # abstract
-    if ads_parser.abstract.startswith('http://'):
-        # old scanned articles
-        bibdesk(
-            'make new linked URL at end of linked URLs '
-            'with data "%s"' % ads_parser.abstract, pub)
-    else:
-        bibdesk(
-            'set abstract to "%s"'
-            % ads_parser.abstract.replace('\\', r'\\').replace('"', r'\"'),
-            pub)
 
-    print(ads_parser.abstract)
+    # string variable with abstract
+    xabs=ads_parser.abstract
 
-    doi = bibdesk('value of field "doi"', pub).stringValue()
-    if pdf.endswith('.pdf'):
-        # register PDF into BibDesk
-        bibdesk('add POSIX file "%s" to beginning of linked files' % pdf, pub)
-        # automatic file name
-        bibdesk('auto file', pub)
-    elif 'http' in pdf and not doi:
-        # URL for electronic version - only add it if no DOI link present
-        # (they are very probably the same)
-        bibdesk(
-            'make new linked URL at end of linked URLs with data "%s"'
-            % pdf, pub)
 
-    # add URLs as linked URL if not there yet
-    urls = bibdesk(
-        'value of fields whose name ends with "url"',
-        pub, strlist=True)
-    urlspub = bibdesk('linked URLs', pub, strlist=True)
-    for u in [u for u in urls if u not in urlspub]:
-        bibdesk(
-            'make new linked URL at end of linked URLs with data "%s"'
-            % u, pub)
 
-    # add old annotated files
-    for kept_pdf in kept_pdfs:
-        bibdesk('add POSIX file "%s" to end of linked files' % kept_pdf, pub)
-
-    # re-insert custom fields
-    bibdesk(
-        'set its note to "%s"' % kept_fields.pop('BibDeskAnnotation', ''),
-        pub)
-    newFields = bibdesk('return name of fields', pub, True)
-    for k, v in kept_fields.iteritems():
-        if k not in newFields:
-            bibdesk('set value of field "%s" to "%s"' % (k, v), pub)
-    notify('New publication added',
-           bibdesk('cite key', pub).stringValue(),
-           ads_parser.title)
 
 
 def ingest_pdfs(options, args, prefs):
@@ -829,91 +783,6 @@ class BibTex(object):
         return r.group('type'), r.group('bibcode'), info
 
 
-class BibDesk(object):
-    def __init__(self):
-        """
-        Manage BibDesk publications using AppKit
-        """
-        self.app = AppKit.NSAppleScript.alloc()
-        self.refresh()
-
-    def __call__(self, cmd, pid=None, strlist=False, error=False):
-        """
-        Run AppleScript command on first document of BibDesk
-        :param cmd: AppleScript command string
-        :param pid: address call to first/last publication of document
-        :param strlist: return output as list of string
-        :param error: return full output of call, including error
-        """
-        if pid is None:
-            # address all publications
-            cmd = 'tell first document of application "BibDesk" to %s' % cmd
-        else:
-            # address a single publicatin
-            cmd = 'tell first document of application "BibDesk" to '\
-                  'tell first publication whose id is "%s" to %s' % (pid, cmd)
-        output = self.app.initWithSource_(cmd).executeAndReturnError_(None)
-        if not error:
-            output = output[0]
-            if strlist:
-                # objective C nuisances...
-                output = [output.descriptorAtIndex_(i + 1).stringValue()
-                          for i in range(output.numberOfItems())]
-        return output
-
-    def refresh(self):
-        # is there an opened document yet?
-        if self('return name of first document '
-                'of application "BibDesk"', error=True)[1] is not None:
-            # create blank one
-            self('tell application "BibDesk" to make new document')
-        self.titles = self('return title of publications', strlist=True)
-        self.ids = self('return id of publications', strlist=True)
-
-    def pid(self, title):
-        return self.ids[self.titles.index(title)]
-
-    def authors(self, pid):
-        """
-        Get name of authors of publication
-        """
-        return self('name of authors', pid, strlist=True)
-
-    def safe_delete(self, pid):
-        """
-        Safely delete publication + PDFs, taking into account
-        the existence of PDFs with Skim notes
-        """
-        keptPDFs = []
-        files = self('POSIX path of linked files', pid, strlist=True)
-        notes = self('text Skim notes of linked files', pid, strlist=True)
-
-        for f, n in zip([f for f in files if f is not None],
-                        [n for n in notes if n is not None]):
-            if f.lower().endswith('pdf'):
-                if '_notes_' in f:
-                    keptPDFs.append(f)
-                else:
-                    # check for annotations
-                    if n or has_annotationss(f):
-                        suffix = 1
-                        path, ext = os.path.splitext(f)
-                        backup = path + '_notes_%i.pdf' % suffix
-                        while os.path.exists(backup):
-                            suffix += 1
-                            backup = path + '_notes_%i.pdf' % suffix
-                        # rename
-                        os.rename(f, backup)
-                        keptPDFs.append(backup)
-                        if os.path.exists(path + '.skim'):
-                            os.rename(path + '.skim',
-                                      path + '_notes_%i.skim' % suffix)
-                    else:
-                        # remove file
-                        os.remove(f)
-        # delete publication
-        self('delete', pid)
-        return keptPDFs
 
 
 class ADSException(Exception):
