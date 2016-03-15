@@ -246,84 +246,14 @@ def process_token(article_token, prefs, bibdesk=None):
         return False
 
     # get PDF first
-    pdf = ads_parser.get_pdf()
+    #pdf = ads_parser.get_pdf()
 
-    # TODO refactor this out into a 'show_pdf' function
-    if prefs['options'].get('only_pdf'):
-        if not pdf.endswith('.pdf'):
-            return False
-        # just open PDF
-        reader = ('pdf_reader' in prefs and
-                  prefs['pdf_reader'] is not None) and \
-            prefs['pdf_reader'] or 'Finder'
-        app = AppKit.NSAppleScript.alloc()
-        app.initWithSource_(
-            'tell application "%s" '
-            'to open ("%s" as POSIX file)' % (reader, pdf)).\
-            executeAndReturnError_(None)
-        # get name of the used viewer
-        # (Finder may be defaulted to something else than Preview)
-        if reader == 'Finder':
-            reader = app.initWithSource_(
-                'return name of (info for (path to frontmost application))').\
-                executeAndReturnError_(None)[0].stringValue()
-        logging.debug('opening %s with %s' % (pdf, reader))
-        if 'skim' in reader.lower():
-            time.sleep(1)  # give it time to open
-            app.initWithSource_(
-                'tell application "%s" to set view settings '
-                'of first document to {auto scales:true}'
-                % reader).executeAndReturnError_(None)
-        app.dealloc()
-        return True
+    # removed PDF generator and bibdesk matching code 
+    # which was previously here
 
-    # search for already existing publication
-    # with exactly the same title and first author
-    # match title and first author using fuzzy string comparison
-    # FIXME put cutoff into preferences; could be related to problems
-    # FIXME refactor this out
-    found = difflib.get_close_matches(
-        ads_parser.title, bibdesk.titles,
-        n=1, cutoff=.7)
-    kept_pdfs = []
-    kept_fields = {}
-    # first author is the same
-    if found and difflib.SequenceMatcher(
-            None,
-            bibdesk.authors(bibdesk.pid(found[0]))[0],
-            ads_parser.author[0]).ratio() > .6:
-        # further comparison on abstract
-        abstract = bibdesk('abstract', bibdesk.pid(found[0])).stringValue()
-        if not abstract or difflib.SequenceMatcher(
-                None, abstract,
-                ads_parser.abstract).ratio() > .6:
-            pid = bibdesk.pid(found[0])
-            # keep all fields for later comparison
-            # (especially rating + read bool)
-            kept_fields = dict((k, v) for k, v in
-                               zip(bibdesk('return name of fields', pid, True),
-                               bibdesk('return value of fields', pid, True))
-                               # Adscomment may be arXiv only
-                               if k != 'Adscomment')
-            # plus BibDesk annotation
-            kept_fields['BibDeskAnnotation'] = bibdesk(
-                'return its note', pid).stringValue()
-            kept_pdfs += bibdesk.safe_delete(pid)
-            notify('Duplicate publication removed',
-                   article_token, ads_parser.title)
-            bibdesk.refresh()
-
-    # FIXME refactor out this bibdesk import code?
-    # add new entry
-    pub = bibdesk(
-        'import from "%s"' % ads_parser.bibtex.__str__().
-        replace('\\', r'\\').replace('"', r'\"'))
-    # pub id
-    pub = pub.descriptorAtIndex_(1).descriptorAtIndex_(3).stringValue()
-    # automatic cite key
-    bibdesk('set cite key to generated cite key', pub)
-
-    print(ads_parser.bibtex.__str__())
+    # this is a string with all the bibtex info
+    # ready to be imported into jabref or other software
+    xbibtex=ads_parser.bibtex.__str__()
 
     # abstract
     if ads_parser.abstract.startswith('http://'):
