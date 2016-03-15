@@ -177,21 +177,22 @@ def process_articles(args, prefs, delay=15):
                           if s.strip()]
 
     # AppKit hook for BibDesk
-    bibdesk = BibDesk()
+    #bibdesk = BibDesk()
 
     for article_token in article_tokens:
         try:
-            process_token(article_token, prefs, bibdesk)
+            #process_token(article_token, prefs, bibdesk)
+            process_token(article_token, prefs)
         except ADSException, err:
             logging.debug('%s failed - %s' % (article_token, err))
         if len(article_tokens) > 1 and article_token != article_tokens[-1]:
             time.sleep(delay)
 
-    bibdesk.app.dealloc()
+    #bibdesk.app.dealloc()
 
 
 # FIXME this function needs to be refactored
-def process_token(article_token, prefs, bibdesk):
+def process_token(article_token, prefs, bibdesk=None):
     """Process a single article token from the user, adding it to BibDesk.
 
     Parameters
