@@ -40,6 +40,7 @@ import socket
 import sys
 import tempfile
 import time
+import pyperclip # for copying text into the clipboard
 
 # cgi.parse_qs is deprecated since 2.6
 # but OS X 10.5 only has 2.5
@@ -193,7 +194,8 @@ def process_articles(args, prefs, delay=15):
 
 # FIXME this function needs to be refactored
 def process_token(article_token, prefs, bibdesk=None):
-    """Process a single article token from the user, adding it to BibDesk.
+    """Process a single article token from the user, copying it
+    to the clipboard.
 
     Parameters
     ----------
@@ -251,16 +253,24 @@ def process_token(article_token, prefs, bibdesk=None):
     # removed PDF generator and bibdesk matching code 
     # which was previously here
 
-    # this is a string with all the bibtex info
-    # ready to be imported into jabref or other software
-    xbibtex=ads_parser.bibtex.__str__()
-
     # string variable with abstract
     xabs=ads_parser.abstract
 
+    # updates bibtex field to include abstract
     ads_parser.bibtex.info.update({'abstract': '"' + xabs + '"'})
 
-    print(ads_parser.bibtex)
+    # this is a string with all the bibtex info
+    # ready to be imported into jabref or other software.
+    # Converts into proper encoding to avoid problems with 
+    # the copy/paste below
+    xbibtex=unicode(ads_parser.bibtex.__str__(), 'utf-8')
+
+    # copies text to the clipboard for easy importing into
+    # whatever program you have
+    pyperclip.copy(xbibtex)
+    pyperclip.paste()    
+    print("Done!")
+    
 
 
 
