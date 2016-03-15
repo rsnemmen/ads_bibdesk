@@ -7,7 +7,7 @@ Run::
 
     python setup.py install
 
-and the binary adsbibdesk will be installed into your path.
+and the binary adspaste will be installed into your path.
 
 To build the "Copy BibTeX info" service, run::
 
