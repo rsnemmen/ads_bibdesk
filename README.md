@@ -1,6 +1,7 @@
 ADS to BibDesk
 ==============
 
+
 This is the command line edition of ADS to BibDesk, a tool for retrieving the bibtex, abstract and PDF of an astronomical journal article published on `ADS <http://adsabs.harvard.edu>`_ or `arXiv.org <http://arxiv.org/archive/astro-ph>`_ and add it to your `BibDesk <http://bibdesk.sourceforge.net/>`_ database.
 
 ADS to BibDesk is a tool for retrieving the bibtex, abstract and PDF of an astronomical journal article published on `ADS <http://adsabs.harvard.edu>`_ or `arXiv.org <http://arxiv.org/archive/astro-ph>`_ and adding it to your `BibDesk <http://bibdesk.sourceforge.net/>`_ database.
