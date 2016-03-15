@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 """
-ADS to BibDesk -- frictionless import of ADS publications into BibDesk
-Copyright (C) 2014  Rui Pereira <rui.pereira@gmail.com> and
+ADS Paste -- frictionless import of ADS publications
+Copyright (C) 2016  Rui Pereira <rui.pereira@gmail.com> and
                     Jonathan Sick <jonathansick@mac.com>
+                    Rodrigo Nemmen <rsnemmen@gmail.com>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -147,8 +148,8 @@ updated if it has a new bibcode."""
     ch.setLevel(logging.DEBUG)
     logging.getLogger('').addHandler(ch)
 
-    logging.info("Starting ADS to BibDesk")
-    logging.debug("ADS to BibDesk version %s" % VERSION)
+    logging.info("Starting ADS Paste")
+    logging.debug("ADS Paste version %s" % VERSION)
     logging.debug("Python: %s", sys.version)
 
     # Launch the specific workflow

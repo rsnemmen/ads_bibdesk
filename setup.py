@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-Installation for command-line ADS to BibDesk
+Installation for command-line ADS Paste
 
 Run::
 
@@ -9,7 +9,7 @@ Run::
 
 and the binary adsbibdesk will be installed into your path.
 
-To build the Add to BibDesk service, run::
+To build the "Copy BibTeX info" service, run::
 
     python setup.py service
 """
@@ -33,7 +33,7 @@ def rel_path(path):
 
 
 def get_version():
-    with open(rel_path("adsbibdesk.py")) as f:
+    with open(rel_path("adspaste.py")) as f:
         for line in f:
             if line.startswith("VERSION"):
                 version = re.findall(r'\"(.+?)\"', line)[0]
@@ -46,7 +46,7 @@ class BuildService(Command):
     
     This replaces the build.py script.
     """
-    description = "build Add to BibDesk.service(.app)"
+    description = "build Copy BibTeX info.service(.app)"
     user_options = []
 
     def initialize_options(self):
@@ -60,10 +60,10 @@ class BuildService(Command):
     def run(self):
         """Runner"""
         service_path = rel_path(os.path.join("build",
-            "Add to BibDesk.workflow", "Contents", "document.wflow"))
-        app_path = rel_path(os.path.join("build", "ADS to BibDesk.app",
+            "Copy BibTeX info.workflow", "Contents", "document.wflow"))
+        app_path = rel_path(os.path.join("build", "Copy BibTeX info.app",
             "Contents", "document.wflow"))
-        py_path = rel_path("adsbibdesk.py")
+        py_path = rel_path("adspaste.py")
 
         for workflow in (service_path, app_path):
             xml = ElementTree.fromstring(open(workflow).read())
@@ -83,25 +83,24 @@ class BuildService(Command):
 
             logger.info("Saving {0}".format(workflow))
             open(workflow, 'w').write(ElementTree.tostring(xml))
-        logger.info("Completed ADS to BibDesk build step")
+        logger.info("Completed Copy BibTeX info build step")
 
 
 setup(
-    name='adsbibdesk',
+    name='adspaste',
     version=get_version(),
-    author='Jonathan Sick',
-    author_email='jonathansick@mac.com',
+    author='Jonathan Sick, Rodrigo Nemmen',
+    author_email='rsnemmen@gmail.com',
     url="http://www.jonathansick.ca/adsbibdesk/",
-    description="Add papers from arxiv.org or NASA/SAO ADS to your BibDesk"
-                " bibliography.",
-    long_description=read('README.rst'),
+    description="Add papers from arxiv.org or NASA/SAO ADS to your clipboard",
+    long_description=read('README.md'),
     keywords="bibtex astronomy",
     classifiers=["Development Status :: 5 - Production/Stable",
         "Intended Audience :: Science/Research",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
         "Operating System :: MacOS :: MacOS X",
         "Topic :: Scientific/Engineering :: Astronomy"],
-    py_modules=['adsbibdesk'],
-    entry_points={'console_scripts': ['adsbibdesk = adsbibdesk:main']},
+    py_modules=['adspaste'],
+    entry_points={'console_scripts': ['adspaste = adspaste:main']},
     cmdclass={'service': BuildService}
 )
