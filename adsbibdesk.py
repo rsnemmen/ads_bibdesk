@@ -269,7 +269,8 @@ def process_token(article_token, prefs, bibdesk=None):
     # whatever program you have
     pyperclip.copy(xbibtex)
     pyperclip.paste()    
-    print("Done!")
+    
+    print(xbibtex)
     
 
 
