@@ -347,6 +347,8 @@ def process_token(article_token, prefs, bibdesk):
     # automatic cite key
     bibdesk('set cite key to generated cite key', pub)
 
+    print(ads_parser.bibtex.__str__())
+
     # abstract
     if ads_parser.abstract.startswith('http://'):
         # old scanned articles
@@ -358,6 +360,8 @@ def process_token(article_token, prefs, bibdesk):
             'set abstract to "%s"'
             % ads_parser.abstract.replace('\\', r'\\').replace('"', r'\"'),
             pub)
+
+    print(ads_parser.abstract)
 
     doi = bibdesk('value of field "doi"', pub).stringValue()
     if pdf.endswith('.pdf'):
