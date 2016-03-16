@@ -3,7 +3,7 @@ ADS Paste
 
 This is a command line tool for retrieving the bibtex info of an astronomical journal article published on [ADS](http://adsabs.harvard.edu) or [arXiv](http://arxiv.org/archive/astro-ph) and copying it to your clipboard. You can then add the citation to your favorite  bibtex database manager (e.g., [jabref](http://www.jabref.org), [bibdesk](http://bibdesk.sourceforge.net), [papers](http://www.papersapp.com), [mendeley](https://www.mendeley.com/newsfeed/)).
 
-This tool is based on [ADS to Bibdesk](https://github.com/jonathansick/ads_bibdesk). The reason why I adapted it is because the original code worked only with the [bibdesk](http://bibdesk.sourceforge.net) program. However, bibdesk as of early 2016 is quite buggy and has not been supported in a while.
+This tool is based on [ADS to Bibdesk](https://github.com/jonathansick/ads_bibdesk). The reason why I adapted it is because the original code worked only with the [bibdesk](http://bibdesk.sourceforge.net) program. However, bibdesk as of late 2015 [is quite buggy](https://www.google.com.br/search?client=safari&rls=en&q=bibdesk+crash+osx&ie=UTF-8&oe=UTF-8&gfe_rd=cr&ei=e1jpVuazBOep8wf77JDgDQ#q=bibdesk+bug+crash) and has not been supported in a while.
 
 
 # Command Line Quickstart
@@ -30,9 +30,7 @@ The complete BibTeX info will then be available in the clipboard, for example:
 
 You can then paste it in your favorite bibtex database manager (e.g., [jabref](http://www.jabref.org), [bibdesk](http://bibdesk.sourceforge.net), [papers](http://www.papersapp.com), [mendeley](https://www.mendeley.com/newsfeed/)).
 
-A full summary of adspaste commands is available via
-
-    adspaste --help
+~~A full summary of adspaste commands is available via `adspaste --help`~~
 
 # Summary of article tokens
 
@@ -50,11 +48,7 @@ The command line script can be installed via
 
 and the binary adsbibdesk will be installed into your path. You may need to run the last command with `sudo`.
 
-If you want to be able to right click on a reference and run the script on the selection from OS X, run
-
-    python setup.py service
-
-to build the service.
+~~If you want to be able to right click on a reference and run the script on the selection from OS X, run `python setup.py service` to build the service.~~ (needs to be implemented)
 
 # TODO
 
