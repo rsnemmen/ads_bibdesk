@@ -278,49 +278,6 @@ def process_token(article_token, prefs, bibdesk=None):
 
 
 
-def ingest_pdfs(options, args, prefs):
-    """Workflow for attempting to ingest a directory of PDFs into BibDesk.
-
-    This workflow attempts to scape DOIs from the PDF text, which are then
-    added to BibDesk using the usual `process_token` function.
-    """
-    assert len(args) == 1, "Please pass a path to a directory"
-    pdf_dir = args[0]
-    assert os.path.exists(pdf_dir) is True, "%s does not exist" % pdf_dir
-    print "Searching", pdf_dir
-
-    if options.recursive:
-        # Recursive glob solution from
-        # http://stackoverflow.com/a/2186565
-        pdf_paths = []
-        for root, dirnames, filenames in os.walk(pdf_dir):
-            for filename in fnmatch.filter(filenames, '*.pdf'):
-                pdf_paths.append(os.path.join(root, filename))
-    else:
-        pdf_paths = glob.glob(os.path.join(pdf_dir, "*.pdf"))
-
-    # Process each PDF, looking for a DOI
-    grabber = PDFDOIGrabber()
-    found = []
-    for i, pdf_path in enumerate(pdf_paths):
-        dois = grabber.search(pdf_path)
-        if not dois:
-            logging.info(
-                "%i of %i: no DOIs for %s"
-                % (i + 1, len(pdf_paths), pdf_path))
-        else:
-            found.extend(dois)
-            for doi in dois:
-                logging.info(
-                    "%i of %i: %s = %s"
-                    % (i + 1, len(pdf_paths), os.path.basename(pdf_path), doi))
-
-    # let process_articles inject everything
-    if found:
-        logging.info('Adding %i articles to BibDesk...' % len(found))
-        process_articles(found, prefs)
-
-
 def update_arxiv(options, prefs):
     """
     Workflow for updating arXiv pre-prints automatically with newer bibcodes.
@@ -503,33 +460,7 @@ def get_redirect(url):
     return out.geturl()
 
 
-class PDFDOIGrabber(object):
-    """Converts PDFs to text and attempts to match all DOIs"""
-    def __init__(self):
-        super(PDFDOIGrabber, self).__init__()
-        regstr = r'(10[.][0-9]{4,}(?:[.][0-9]+)*/(?:(?!["&\'<>\)\.,])\S)+)'
-        self.pattern = re.compile(regstr)
 
-    def search(self, pdfPath):
-        """Return a list of DOIs in the text of the PDF at `pdfPath`"""
-        json_path = os.path.splitext(pdfPath)[0] + ".json"
-        if os.path.exists(json_path):
-            os.remove(json_path)
-        sp.call('pdf2json -q "%s" "%s"' % (pdfPath, json_path), shell=True)
-        data = open(json_path, 'r').read()
-        doi_matches = self.pattern.findall(data)
-        if os.path.exists(json_path):
-            os.remove(json_path)
-
-        # strings can find some stuff that pdf2json does not
-        if not doi_matches:
-            data = sp.Popen(
-                "strings %s" % pdfPath,
-                shell=True, stdout=sp.PIPE,
-                stderr=open('/dev/null', 'w')).stdout.read()
-            doi_matches = self.pattern.findall(data)
-
-        return list(set(doi_matches))
 
 
 class ADSConnector(object):
