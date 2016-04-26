@@ -52,9 +52,9 @@ and the binary adsbibdesk will be installed into your path. You may need to run 
 
 # TODO
 
-* Update the automator service for OS X, such that you can right click to add references with Mac
-* Graphical interface with simple text input for pasting the article token and pressing enter/clicking, copying the bibtex entry to the clipboard
-* Remove other options and unnecessary code previously available in adsbibdesk which are not needed anymore
+- [ ] Update the automator service for OS X, such that you can right click to add references with Mac
+- [ ] Graphical interface with simple text input for pasting the article token and pressing enter/clicking, copying the bibtex entry to the clipboard
+- [ ] Remove other options and unnecessary code previously available in adsbibdesk which are not needed anymore
 
 
 # License
