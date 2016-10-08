@@ -46,13 +46,13 @@ import pyperclip # for copying text into the clipboard
 # cgi.parse_qs is deprecated since 2.6
 # but OS X 10.5 only has 2.5
 import cgi
-import urllib2
-import urlparse
+import urllib.request, urllib.error, urllib.parse
+import urllib.parse
 
 import subprocess as sp
 
-from HTMLParser import HTMLParser, HTMLParseError
-from htmlentitydefs import name2codepoint
+from html.parser import HTMLParser, HTMLParseError
+from html.entities import name2codepoint
 
 # default timeout for url calls
 socket.setdefaulttimeout(30)
@@ -213,7 +213,7 @@ def process_token(article_token, prefs, bibdesk=None):
     connector = ADSConnector(article_token, prefs)
     ads_parser = ADSHTMLParser(prefs=prefs)
 
-    if isinstance(connector.ads_read, basestring):
+    if isinstance(connector.ads_read, str):
         # parse the ADS HTML file
         ads_parser.parse(connector.ads_read)
 
@@ -229,8 +229,8 @@ def process_token(article_token, prefs, bibdesk=None):
         ads_parser.bibtex.AdsURL = connector.ads_url
         # inject arXiv mirror into ArXivURL
         if 'arxiv_mirror' in prefs and prefs['arxiv_mirror']:
-            tmpurl = urlparse.urlsplit(ads_parser.bibtex.ArXivURL)
-            ads_parser.bibtex.ArXivURL = urlparse.urlunsplit(
+            tmpurl = urllib.parse.urlsplit(ads_parser.bibtex.ArXivURL)
+            ads_parser.bibtex.ArXivURL = urllib.parse.urlunsplit(
                 (tmpurl.scheme,
                  prefs['arxiv_mirror'],
                  tmpurl.path, tmpurl.query,
@@ -264,7 +264,7 @@ def process_token(article_token, prefs, bibdesk=None):
     # ready to be imported into jabref or other software.
     # Converts into proper encoding to avoid problems with 
     # the copy/paste below
-    xbibtex=unicode(ads_parser.bibtex.__str__(), 'utf-8')
+    xbibtex=str(ads_parser.bibtex.__str__(), 'utf-8')
 
     # copies text to the clipboard for easy importing into
     # whatever program you have
@@ -345,8 +345,8 @@ def has_annotationss(f):
 def get_redirect(url):
     """Utility function to intercept final URL of HTTP redirection"""
     try:
-        out = urllib2.urlopen(url)
-    except urllib2.URLError as out:
+        out = urllib.request.urlopen(url)
+    except urllib.error.URLError as out:
         pass
     return out.geturl()
 
@@ -371,7 +371,7 @@ class ADSConnector(object):
         self.prefs = prefs
         self.ads_url = None  # string URL to ADS
         self.ads_read = None  # a urllib2.urlopen connection to ADS
-        self.url_parts = urlparse.urlsplit(token)  # supposing it is a URL
+        self.url_parts = urllib.parse.urlsplit(token)  # supposing it is a URL
 
         # An arXiv identifier or URL?
         if self._is_arxiv():
@@ -406,7 +406,7 @@ class ADSConnector(object):
             if not self.token.startswith("http://"):
                 self.token = 'http://' + self.token
             # supposing it is a URL
-            self.url_parts = urlparse.urlsplit(self.token)
+            self.url_parts = urllib.parse.urlsplit(self.token)
 
             # An abstract page at any ADS mirror site?
             if self.url_parts.netloc in self.prefs.adsmirrors \
@@ -425,7 +425,7 @@ class ADSConnector(object):
         arxiv_matches = arxiv_pattern.findall(self.token)
         if len(arxiv_matches) == 1:
             self.arxiv_id = arxiv_matches[0]
-            self.ads_url = urlparse.urlunsplit((
+            self.ads_url = urllib.parse.urlunsplit((
                 'http',
                 self.prefs['ads_mirror'],
                 'cgi-bin/bib_query',
@@ -437,14 +437,14 @@ class ADSConnector(object):
 
     def _is_bibcode(self):
         """Test if the token corresponds to an ADS bibcode or DOI"""
-        self.ads_url = urlparse.urlunsplit((
+        self.ads_url = urllib.parse.urlunsplit((
             'http', self.prefs['ads_mirror'],
             'doi/%s' % self.token, '', ''))
         read = self._read(self.ads_url)
         if read:
             return read
         else:
-            self.ads_url = urlparse.urlunsplit((
+            self.ads_url = urllib.parse.urlunsplit((
                 'http',
                 self.prefs['ads_mirror'], 'abs/%s' % self.token, '', ''))
             read = self._read(self.ads_url)
@@ -454,7 +454,7 @@ class ADSConnector(object):
         """Test if the token is a url to an ADS abstract page"""
         # use our ADS mirror
         url = self.url_parts
-        self.ads_url = urlparse.urlunsplit((
+        self.ads_url = urllib.parse.urlunsplit((
             url.scheme,
             self.prefs['ads_mirror'],
             url.path, url.query, url.fragment))
@@ -470,9 +470,9 @@ class ADSConnector(object):
             # remove <head>...</head> - often broken HTML
             self.ads_read = re.sub(
                 r'<head>[\s\S]*</head>', '',
-                urllib2.urlopen(ads_url).read())
+                urllib.request.urlopen(ads_url).read())
             return True
-        except urllib2.HTTPError:
+        except urllib.error.HTTPError:
             return False
 
 
@@ -500,7 +500,7 @@ class Preferences(object):
         self.prefs = self._get_default_prefs()  # Hard coded defaults dict
         new_prefs = self._get_prefs()  # load user prefs from disk
         self.prefs.update(new_prefs)  # override defaults with user prefs
-        self._keys = self.prefs.keys()
+        self._keys = list(self.prefs.keys())
         self._iter_index = -1
 
     def __getitem__(self, key):
@@ -508,12 +508,12 @@ class Preferences(object):
 
     def __setitem__(self, key, value):
         self.prefs[key] = value
-        self._keys = self.prefs.keys()
+        self._keys = list(self.prefs.keys())
 
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         if self._iter_index == len(self._keys) - 1:
             self._iter_index = -1
             raise StopIteration
@@ -565,7 +565,7 @@ class Preferences(object):
         Set a default preferences file (~/.adsbibdesk)
         """
         prefs = open(self.prefs_path, 'w')
-        print >> prefs, """# ADS mirror
+        print("""# ADS mirror
 ads_mirror=%s
 
 # arXiv mirror
@@ -580,7 +580,7 @@ download_pdf=%s
 ssh_user=%s
 ssh_server=%s""" % (self.prefs['ads_mirror'], self.prefs['arxiv_mirror'],
                     self.prefs['download_pdf'], self.prefs['ssh_user'],
-                    self.prefs['ssh_server'])
+                    self.prefs['ssh_server']), file=prefs)
 
         prefs.close()
 
@@ -595,7 +595,7 @@ class BibTex(object):
         """
         Create BibTex instance from ADS BibTex URL
         """
-        bibtex = urllib2.urlopen(url).readlines()
+        bibtex = urllib.request.urlopen(url).readlines()
         bibtex = ' '.join([l.strip() for l in bibtex]).strip()
         bibtex = bibtex[re.search('@[A-Z]+\{', bibtex).start():]
         self.type, self.bibcode, self.info = self.parsebib(bibtex)
@@ -603,7 +603,7 @@ class BibTex(object):
     def __str__(self):
         return (','.join(
             ['@' + self.type + '{' + self.bibcode] +
-            ['%s=%s' % (i, j) for i, j in self.info.items()]) + '}').\
+            ['%s=%s' % (i, j) for i, j in list(self.info.items())]) + '}').\
             encode('utf-8')
 
     def parsebib(self, bibtex):
@@ -653,7 +653,7 @@ class ADSHTMLParser(HTMLParser):
         """
         w3 = 'http://www.w3.org/Math/characters/byalpha.html'
         mathml = re.search('(?<=<pre>).+(?=</pre>)',
-                           urllib2.urlopen(w3).read(), re.DOTALL).group()
+                           urllib.request.urlopen(w3).read(), re.DOTALL).group()
         entities = {}
         for l in mathml[:-1].splitlines():
             s = l.split(',')
@@ -666,8 +666,8 @@ class ADSHTMLParser(HTMLParser):
     def parse_at_url(self, url):
         """Helper method to read data from URL, and passes on to parse()."""
         try:
-            html_data = urllib2.urlopen(url).read()
-        except urllib2.URLError as err:
+            html_data = urllib.request.urlopen(url).read()
+        except urllib.error.URLError as err:
             logging.debug("ADSHTMLParser timed out on URL: %s", url)
             raise ADSException(err)
         self.parse(html_data)
@@ -703,13 +703,13 @@ class ADSHTMLParser(HTMLParser):
                         or not self.prefs['arxiv_mirror']:
                     # test HTTP redirect to get the arXiv mirror used by ADS
                     try:
-                        mirror = urlparse.urlsplit(
+                        mirror = urllib.parse.urlsplit(
                             get_redirect(self.links['preprint'])).netloc
                     except KeyError:
                         mirror = 'arxiv.org'  # this should not happen
                 else:
                     mirror = self.prefs['arxiv_mirror']
-                url = urlparse.urlunsplit((
+                url = urllib.parse.urlunsplit((
                     'http', mirror,
                     'abs/' + self.arxivid, None, None))
                 self.bibtex.info.update({'arxivurl': '"' + url + '"'})
@@ -722,12 +722,12 @@ class ADSHTMLParser(HTMLParser):
             self.tag = ''
         elif tag.lower() == 'img' and self.get_abs:
             # handle old scanned articles abstracts
-            self.tag += dict(attrs)['src'].replace('&#38;', unichr(38))
+            self.tag += dict(attrs)['src'].replace('&#38;', chr(38))
         elif tag.lower() == 'a':
             # links
             if 'href' in dict(attrs):
-                href = dict(attrs)['href'].replace('&#38;', unichr(38))
-                query = cgi.parse_qs(urlparse.urlsplit(href).query)
+                href = dict(attrs)['href'].replace('&#38;', chr(38))
+                query = cgi.parse_qs(urllib.parse.urlsplit(href).query)
                 if 'bibcode' in query:
                     if 'link_type' in query:
                         self.links[query['link_type'][0].lower()] = href
@@ -768,7 +768,7 @@ class ADSHTMLParser(HTMLParser):
         if self.get_abs:
             if name in name2codepoint:
                 c = name2codepoint[name]
-                self.tag += unichr(c).encode('utf-8')
+                self.tag += chr(c).encode('utf-8')
             else:
                 # fetch mathml
                 if not self.entities:
@@ -776,7 +776,7 @@ class ADSHTMLParser(HTMLParser):
                     self.entities = self.mathml()
                 if name in self.entities:
                     c = self.entities[name]
-                    self.tag += unichr(c).encode('utf-8')
+                    self.tag += chr(c).encode('utf-8')
                 else:
                     # nothing worked, leave it as-is
                     self.tag += '&' + name + ';'
@@ -784,7 +784,7 @@ class ADSHTMLParser(HTMLParser):
     # handle unicode chars in utf-8
     def handle_charref(self, name):
         if self.get_abs:
-            self.tag += unichr(int(name)).encode('utf-8')
+            self.tag += chr(int(name)).encode('utf-8')
 
     def get_pdf(self):
         """
@@ -835,8 +835,8 @@ class ADSHTMLParser(HTMLParser):
             fd, pdf = tempfile.mkstemp(suffix='.pdf')
             # test for HTTP auth need
             try:
-                os.fdopen(fd, 'wb').write(urllib2.urlopen(pdf_url).read())
-            except urllib2.URLError as err:  # HTTPError derives from URLError
+                os.fdopen(fd, 'wb').write(urllib.request.urlopen(pdf_url).read())
+            except urllib.error.URLError as err:  # HTTPError derives from URLError
                 logging.debug('%s failed: %s' % (pdf_url, err))
                 # dummy file
                 open(pdf, 'w').write('dummy')
@@ -873,37 +873,37 @@ class ADSHTMLParser(HTMLParser):
                 if 'arxiv_mirror' not in self.prefs \
                         or not self.prefs['arxiv_mirror']:
                     # test HTTP redirect to get the arXiv mirror used by ADS
-                    mirror = urlparse.urlsplit(get_redirect(url)).netloc
+                    mirror = urllib.parse.urlsplit(get_redirect(url)).netloc
                 else:
                     mirror = self.prefs['arxiv_mirror']
-                url = urlparse.urlunsplit((
+                url = urllib.parse.urlunsplit((
                     'http', mirror, 'pdf/' + self.arxivid, None, None))
                 logging.debug('arXiv PDF (%s)' % url)
 
             else:
                 # search for PDF link in the arXiv page
                 # this should be *deprecated*
-                for line in urllib2.urlopen(url):
+                for line in urllib.request.urlopen(url):
                     if '<h1><a href="/">' in line:
                         mirror = re.search(
                             '<h1><a href="/">(.*ar[xX]iv.org)',
                             line)
                     elif 'dc:identifier' in line:
                         begin = re.search('dc:identifier="', line).end()
-                        url = urlparse.urlsplit(
-                            line[begin:-2].replace('&#38;', unichr(38)).
+                        url = urllib.parse.urlsplit(
+                            line[begin:-2].replace('&#38;', chr(38)).
                             lower())
                         # use automatic mirror chosen by the ADS mirror
                         if ('arxiv_mirror' not in self.prefs
                                 or not self.prefs['arxiv_mirror']) \
                                 and mirror is not None:
-                            url = urlparse.urlunsplit((
+                            url = urllib.parse.urlunsplit((
                                 url.scheme,
                                 mirror.group(1), url.path, url.query,
                                 url.fragment))
                             break
                         elif self.prefs['arxiv_mirror']:
-                            url = urlparse.urlunsplit((
+                            url = urllib.parse.urlunsplit((
                                 url.scheme,
                                 self.prefs['arxiv_mirror'],
                                 url.path, url.query,
@@ -914,7 +914,7 @@ class ADSHTMLParser(HTMLParser):
 
             # get arXiv PDF
             fd, pdf = tempfile.mkstemp(suffix='.pdf')
-            os.fdopen(fd, 'wb').write(urllib2.urlopen(
+            os.fdopen(fd, 'wb').write(urllib.request.urlopen(
                 url.replace('abs', 'pdf')).read())
             if 'PDF document' in filetype(pdf):
                 return pdf
@@ -925,7 +925,7 @@ class ADSHTMLParser(HTMLParser):
                     notify('Waiting for arXiv...', '',
                            'PDF is being generated, retrying in 30s...')
                     time.sleep(30)
-                    open(pdf, 'wb').write(urllib2.urlopen(
+                    open(pdf, 'wb').write(urllib.request.urlopen(
                         url.replace('abs', 'pdf')).read())
                 if 'PDF document' in filetype(pdf):
                     return pdf
@@ -960,8 +960,8 @@ class ArXivParser(object):
         from xml.etree import ElementTree
         self.url = 'http://export.arxiv.org/api/query?id_list=' + arxiv_id
         try:
-            self.xml = ElementTree.fromstring(urllib2.urlopen(self.url).read())
-        except (urllib2.HTTPError, urllib2.URLError) as err:
+            self.xml = ElementTree.fromstring(urllib.request.urlopen(self.url).read())
+        except (urllib.error.HTTPError, urllib.error.URLError) as err:
             logging.debug("ArXivParser failed on URL: %s", self.url)
             raise ArXivException(err)
         self.info = self.parse(self.xml)
@@ -1017,7 +1017,7 @@ class ArXivParser(object):
                 '%s = {%s},' % (k, v)
                 for k, v in
                 sorted([(k, v.decode('utf-8'))
-                        for k, v in self.__dict__.iteritems()
+                        for k, v in self.__dict__.items()
                         if k[0] in string.uppercase])]) +\
             '}'
 
@@ -1044,7 +1044,7 @@ class MNRASParser(HTMLParser):
         try:
             # Detect and decode page's charset
             logging.debug("Parsing MNRAS url %s" % url)
-            connection = urllib2.urlopen(url)
+            connection = urllib.request.urlopen(url)
             encoding = connection.headers.getparam('charset')
             if encoding is not None:
                 logging.debug("Detected MNRAS encoding %s" % encoding)
@@ -1054,7 +1054,7 @@ class MNRASParser(HTMLParser):
                 logging.debug("No detected MNRAS encoding")
                 page = connection.read()
                 self.feed(page)
-        except urllib2.URLError as err:  # HTTP timeout
+        except urllib.error.URLError as err:  # HTTP timeout
             logging.debug("MNRASParser timed out: %s", url)
             raise MNRASException(err)
         except HTMLParseError as err:
@@ -1066,8 +1066,8 @@ class MNRASParser(HTMLParser):
         """
         if tag.lower() == "meta":
             attrs = dict(attrs)
-            if u'name' in attrs and attrs[u'name'] == u'citation_pdf_url':
-                self.pdf_url = attrs[u'content']
+            if 'name' in attrs and attrs['name'] == 'citation_pdf_url':
+                self.pdf_url = attrs['content']
 
 
 if __name__ == '__main__':
