@@ -50,11 +50,16 @@ and the binary adsbibdesk will be installed into your path. You may need to run 
 
 ~~If you want to be able to right click on a reference and run the script on the selection from OS X, run `python setup.py service` to build the service.~~ (needs to be implemented)
 
+## Python 2.x
+
+This code is being ported to Python 3.x. The version that still works fine for Python 2.x is available in the branch [`py2`](https://github.com/rsnemmen/adspaste/tree/py2).
+
 # TODO
 
 - [ ] Update the automator service for OS X, such that you can right click to add references with Mac
 - [ ] Graphical interface with simple text input for pasting the article token and pressing enter/clicking, copying the bibtex entry to the clipboard
-- [ ] Remove other options and unnecessary code previously available in adsbibdesk which are not needed anymore
+- [x] Remove other options and unnecessary code previously available in adsbibdesk which are not needed anymore
+- [ ] Port code to Python 3.x (in progress)
 
 
 # License
