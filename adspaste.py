@@ -185,7 +185,7 @@ def process_articles(args, prefs, delay=15):
         try:
             #process_token(article_token, prefs, bibdesk)
             process_token(article_token, prefs)
-        except ADSException, err:
+        except ADSException as err:
             logging.debug('%s failed - %s' % (article_token, err))
         if len(article_tokens) > 1 and article_token != article_tokens[-1]:
             time.sleep(delay)
@@ -346,7 +346,7 @@ def get_redirect(url):
     """Utility function to intercept final URL of HTTP redirection"""
     try:
         out = urllib2.urlopen(url)
-    except urllib2.URLError, out:
+    except urllib2.URLError as out:
         pass
     return out.geturl()
 
@@ -389,7 +389,7 @@ class ADSConnector(object):
                     logging.debug(
                         "arXiv page (%s) parsed for %s"
                         % (arxiv_bib.url, self.token))
-                except ArXivException, err:
+                except ArXivException as err:
                     logging.debug("ADS and arXiv failed, you're in trouble...")
                     raise ADSException(err)
 
@@ -667,7 +667,7 @@ class ADSHTMLParser(HTMLParser):
         """Helper method to read data from URL, and passes on to parse()."""
         try:
             html_data = urllib2.urlopen(url).read()
-        except urllib2.URLError, err:
+        except urllib2.URLError as err:
             logging.debug("ADSHTMLParser timed out on URL: %s", url)
             raise ADSException(err)
         self.parse(html_data)
@@ -836,7 +836,7 @@ class ADSHTMLParser(HTMLParser):
             # test for HTTP auth need
             try:
                 os.fdopen(fd, 'wb').write(urllib2.urlopen(pdf_url).read())
-            except urllib2.URLError, err:  # HTTPError derives from URLError
+            except urllib2.URLError as err:  # HTTPError derives from URLError
                 logging.debug('%s failed: %s' % (pdf_url, err))
                 # dummy file
                 open(pdf, 'w').write('dummy')
@@ -961,7 +961,7 @@ class ArXivParser(object):
         self.url = 'http://export.arxiv.org/api/query?id_list=' + arxiv_id
         try:
             self.xml = ElementTree.fromstring(urllib2.urlopen(self.url).read())
-        except (urllib2.HTTPError, urllib2.URLError), err:
+        except (urllib2.HTTPError, urllib2.URLError) as err:
             logging.debug("ArXivParser failed on URL: %s", self.url)
             raise ArXivException(err)
         self.info = self.parse(self.xml)
@@ -1054,10 +1054,10 @@ class MNRASParser(HTMLParser):
                 logging.debug("No detected MNRAS encoding")
                 page = connection.read()
                 self.feed(page)
-        except urllib2.URLError, err:  # HTTP timeout
+        except urllib2.URLError as err:  # HTTP timeout
             logging.debug("MNRASParser timed out: %s", url)
             raise MNRASException(err)
-        except HTMLParseError, err:
+        except HTMLParseError as err:
             raise MNRASException(err)
 
     def handle_starttag(self, tag, attrs):
