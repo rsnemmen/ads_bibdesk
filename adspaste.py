@@ -51,7 +51,14 @@ import urllib.parse
 
 import subprocess as sp
 
-from html.parser import HTMLParser, HTMLParseError
+#from html.parser import HTMLParser, HTMLParseError
+from html.parser import HTMLParser # https://github.com/stephenmcd/mezzanine/issues/1413
+try:
+    from html.parser import HTMLParseError
+except ImportError:  # Python 3.5+
+    class HTMLParseError(Exception):
+        pass
+
 from html.entities import name2codepoint
 
 # default timeout for url calls
